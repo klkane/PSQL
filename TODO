@@ -1,0 +1,25 @@
+Tab Completion:
+    Commands
+    SQL Reserved words
+    Things in schema
+
+Password Prompt
+YAML Config file
+
+Functionality
+    Fill out the commands
+    Run from file system
+    History
+    Auto-Transaction
+    Explain plan formatting
+    output formatting
+    :set mode
+    edit query in editor save buffer gets executed
+    connect on use for configurations loaded from a file
+    /connect with no args prompts you for all information in a friendly manner
+    /which command is broken
+
+DBA tools
+    DB process lists
+    top like display
+

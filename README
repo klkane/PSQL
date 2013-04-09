@@ -1,0 +1,32 @@
+PSQL version 0.01
+=================
+
+PSQL is a Perl SQL client that is intended to be small cleanly written
+and feature rich.  If you need to connect to multiple different 
+databases and are tired of using a different client for each one then
+PSQL may be for you.  The interface is intended to be similiar to the
+mysql client.
+
+To use PSQL the simplest way is to execute the following command:
+
+$ perl -MPSQL -e 'new PSQL()'
+
+INSTALLATION
+
+To install this module type the following:
+
+   perl Makefile.PL
+   make
+   make test
+   make install
+
+DEPENDENCIES
+
+COPYRIGHT AND LICENCE
+
+Copyright (C) 2013 by Kevin L. Kane
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+

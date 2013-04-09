@@ -1,0 +1,10 @@
+#!/usr/bin/perl
+use lib 'lib/';
+
+use strict;
+use warnings;
+use PSQL;
+
+new PSQL();
+
+exit;

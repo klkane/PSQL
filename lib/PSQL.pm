@@ -52,18 +52,39 @@ an exit/quit command to the shell.
 =cut
 
 sub new {
-	my $readline = new Term::ReadLine 'Perl SQL Client';
+    my $class = shift;
+    my $self = bless {}, $class;
+	
+    my $readline = new Term::ReadLine 'Perl SQL Client';
 	my $cman = new PSQL::Connection::Manager();
 	my $context = new PSQL::Context( $cman, -1, "" );
-
     $context->readline( $readline );	
     $context->prompt ( 'psql>' );
 	my $handler = new PSQL::Extension::Handler();
 	$handler->register( "PSQL::Extension::Basic" );
 	$handler->register( "PSQL::Extension::SQL" );
-
     $context->handler( $handler );
+    
+    $self->context( $context );
+    return $self;
+}
 
+sub context {
+    my( $self, $context ) = @_;
+    
+    if( not defined $context ) {
+        $context = $self->{context};
+    } else {
+        $self->{context} = $context;
+    }
+
+    return $context;
+}
+
+sub run {
+    my $self = shift;
+    my $context = $self->context();
+    
 	while ( defined( $_ = $context->readline->readline( 
         $context->prompt() ) ) ) {
         if( $_ eq "" ) {
@@ -72,7 +93,7 @@ sub new {
 
         $context->input( $_ );
 	    if( not $context->handler()->seek( $context ) && length( $_ ) > 0 ) {
-            print "[$_] I don't know how to respond to your request!\n";
+            $context->print( "[$_] I don't know how to respond to your request!\n" );
         }
 	}
 }

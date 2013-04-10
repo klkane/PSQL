@@ -46,7 +46,7 @@ sub load {
     my ($cmd, $file) = split / /, $context->input();
  
     if( -e $file ) { 
-        open FILE, $file or return print $!; 
+        open FILE, $file or return $context->print( $! ); 
         my @lines = <FILE>;
         close FILE;
     
@@ -56,7 +56,7 @@ sub load {
             $context->handler()->seek( $context );
         } 
     } else {
-        print "File does not exist\n";
+        $context->print( "File does not exist\n" );
     }   
 
     return 1;
@@ -69,26 +69,26 @@ sub use {
     if( $context->default( $context->connection_manager()
         ->get( $ident ) ) ) {
         $context->prompt( $context->default->dsn() . '>' );
-        print "Default database set to $ident\n";    
+        $context->print( "Default database set to $ident\n" );    
     } else {
-        print "Can't find database $ident, doing nothing\n";
+        $context->print( "Can't find database $ident, doing nothing\n" );
     }
 }
 
 sub disconnect {
     my ($self, $context) = @_;
-    print "TODO DISCONNECT\n";
+    $context->print( "TODO DISCONNECT\n" );
     return 1;
 }
 
 sub help {
     my ($self, $context) = @_;
-    print "Commands(commands should be preceded by a '" . $self->{_CMD_CHAR}  . "'):\n";
-    print "    ";
-    print " list|exit|quit|which|connect|use\n\n";
-    print "Example:\n";
-    print "    ";
-    print "psql>" . $self->{_CMD_CHAR} . "list\n\n";
+    $context->print( "Commands(commands should be preceded by a '" . $self->{_CMD_CHAR}  . "'):\n" );
+    $context->print( "    " );
+    $context->print( " list|exit|quit|which|connect|use\n\n" );
+    $context->print( "Example:\n" );
+    $context->print( "    " );
+    $context->print( "psql>" . $self->{_CMD_CHAR} . "list\n\n" );
     return 1;
 }
 
@@ -96,7 +96,7 @@ sub connect {
     my ($self, $context) = @_;
     my ($cmd, $dsn, $name, $passwd) = split / /, $context->input();
     if( $context->connection_manager()->add( $dsn, $name, $passwd ) ) {
-        print "Conntected to $dsn\n";
+        $context->print( "Conntected to $dsn\n" );
     } 
     
     return 1;
@@ -106,14 +106,14 @@ sub list {
     my ($self, $context) = @_;
     my $i = 0;
     foreach my $conn ( @{ $context->connection_manager()->connections() } ) {
-        print "$i: " . $conn->dsn() . "\n";
+        $context->print( "$i: " . $conn->dsn() . "\n" );
     }
     return 1;
 }
 
 sub which {
     my ($self, $context) = @_;
-    print $context->default() . "\n";
+    $context->print( $context->default() . "\n" );
     return 1;
 }
 

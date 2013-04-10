@@ -28,8 +28,7 @@ sub init {
     $self->SUPER::init();
     
     $self->{display_type} = 'table';
-    my $is_sql = '(alter|show|explain|update|call|execute|insert|delete|select|drop|create|replace)';
-    $self->{actions}{'^' . $is_sql} = \&PSQL::Extension::SQL::execute_sql;
+    $self->{actions}{';$'} = \&PSQL::Extension::SQL::execute_sql;
     $self->{actions}{'^' . $self->{_CMD_CHAR} . 'run'} = \&PSQL::Extension::SQL::execute_from_file;
     $self->{actions}{'^' . $self->{_CMD_CHAR} . 'record'} = \&PSQL::Extension::SQL::record_sql;
     $self->{actions}{'^' . $self->{_CMD_CHAR} . 'display'} = \&PSQL::Extension::SQL::display;
@@ -57,7 +56,7 @@ sub execute_sql {
         my $ret = $sth->execute();
 
         if( !$ret ) { 
-            print $dbh->errstr . "\n";
+            $context->print( $dbh->errstr . "\n" );
         } else {
             if( $self->{_record_file} ) {
                 open( FILE, ">>" . $self->{_record_file} );
@@ -74,11 +73,11 @@ sub execute_sql {
                     $self->_table_display( $context, $sth );
                 }
             } else {
-                print $sth->rows() . " rows affected\n";
+                $context->print( $sth->rows() . " rows affected\n" );
             }   
         }   
     } else {
-        print "No connection specified unable to do anything.\n";
+        $context->print( "No connection specified unable to do anything.\n" );
     }   
     return 1;
 }
@@ -92,7 +91,7 @@ sub _table_display {
     my $at = new Text::ASCIITable( { headingText => $context->input() } );
     $at->setCols( @{ $sth->{NAME_lc} } );
     $at->addRow( $sth->fetchall_arrayref );    
-    print $at;
+    $context->print( $at );
 }
 
 =head2 _csv_display
@@ -101,9 +100,9 @@ sub _table_display {
 
 sub _csv_display {
     my ($self, $context, $sth) = @_;
-    print join( ',', @{ $sth->{NAME_lc} } ) . "\n";
+    $context->print( join( ',', @{ $sth->{NAME_lc} } ) . "\n" );
     while( my @row = $sth->fetchrow_array ) {
-        print join( ',', @row ) . "\n";
+        $context->print( join( ',', @row ) . "\n" );
     }
 }
 
@@ -115,7 +114,7 @@ sub execute_from_file {
     my ($self, $context) = @_;
     my ($cmd, $file) = split / /, $context->input();
     if( -e $file ) {
-        open FILE, $file or return print $!;
+        open FILE, $file or return $context->print( $! );
         my @lines = <FILE>;
         close FILE;
        
@@ -128,7 +127,7 @@ sub execute_from_file {
             $self->execute_sql( $context );
         }
     } else {
-        print "File does not exist\n";
+        $context->print( "File does not exist\n" );
     }
 
     return 1;
@@ -147,7 +146,7 @@ sub display {
     if( $type =~ /^(table|csv)$/ ) {
         $self->{display_type} = $type;
     } else {
-        print "$type not recognized\n"; 
+        $context->print( "$type not recognized\n" ); 
     }
 
     return 1;
@@ -168,7 +167,7 @@ sub record_sql {
     if( $self->{_record_file} && $file eq "stop" ) {
         $self->{_record_file} = undef;
     } elsif( $self->{_record_file} ) {
-        print "You are already recording to " . $self->{_record_file} . "\n";
+        $context->print( "You are already recording to " . $self->{_record_file} . "\n" );
     } else {
         $self->{_record_file} = $file;
     }

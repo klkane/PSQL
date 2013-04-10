@@ -25,6 +25,32 @@ sub new {
     return $self;
 }
 
+sub buffer_output {
+    my ($self, $buffer_output) = @_;
+    
+    if( not defined $buffer_output ) {
+        $buffer_output = $self->{buffer_output};
+    } else {
+        $self->{buffer_output} = $buffer_output;
+    }
+
+    return $buffer_output;
+}
+
+sub print {
+    my ($self, $output) = @_;
+   
+    if( $self->buffer_output() ) {
+        open FH, ">>" . $self->buffer_output();
+        print FH $output;
+        close FH;
+    } else {
+        print $output;
+    }
+
+    return $output;
+}
+
 sub prompt {
     my ($self, $prompt) = @_;
     

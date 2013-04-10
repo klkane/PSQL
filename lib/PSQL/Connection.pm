@@ -33,6 +33,33 @@ sub dsn {
     return $self->{dsn};
 }
 
+sub user {
+    my ($self, $user) = @_;
+    
+    if( $user ) {
+        $self->{user} = $user;
+    }
+
+    return $self->{user};
+}
+
+sub passwd {
+    my ($self, $passwd) = @_;
+    
+    if( $passwd ) {
+        $self->{passwd} = $passwd;
+    }
+
+    return $self->{passwd};
+}
+
+sub reconnect {
+    my $self = shift;
+    my $dbh = DBI->connect( "dbi:" . $self->dsn, $self->user, $self->passwd );
+    $self->{dbh} = $dbh;
+    return 1;
+}
+
 sub connect {
     my ($self, $dsn, $user, $passwd) = @_;
    
@@ -41,6 +68,8 @@ sub connect {
         my $dbh = DBI->connect( "dbi:$dsn", $user, $passwd ) 
             or $error = 1;
         $self->dsn( $dsn );
+        $self->user( $user );
+        $self->passwd( $passwd );
         $self->{dbh} = $dbh;
     }
 

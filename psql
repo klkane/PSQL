@@ -4,7 +4,9 @@ use lib 'lib/';
 use strict;
 use warnings;
 use PSQL;
+use PSQL::Extension::Basic;
 
-new PSQL();
+my $psql = new PSQL();
+$psql->run();
 
 exit;

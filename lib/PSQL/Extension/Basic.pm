@@ -32,6 +32,32 @@ sub init {
     $self->{actions}{'^' . $self->{_CMD_CHAR} . '?help'} = \&PSQL::Extension::Basic::help;
     $self->{actions}{'^' . $self->{_CMD_CHAR} . 'load'} = \&PSQL::Extension::Basic::load;
     $self->{actions}{'^' . $self->{_CMD_CHAR} . 'register'} = \&PSQL::Extension::Basic::register;
+    $self->{actions}{'^' . $self->{_CMD_CHAR} . 'edit'} = \&PSQL::Extension::Basic::edit;
+}
+
+sub edit {
+    my ($self, $context) = @_;
+    my( $cmd, $opt ) = split / /, $context->input();
+
+    my $file = "/tmp/psql_12321313.tmp";    
+
+    if( $opt && $opt eq "last" ) {
+        open( my $fh, "> $file" );
+        print $fh $context->last_input();
+        close( $fh );
+    } 
+
+    my $editor = $ENV{EDITOR} || "vi";
+    system "$editor $file";
+    open( my $fh, "< $file" );
+    undef $/; 
+    my $text = <$fh>; 
+    $/ = "\n";
+    close $fh; 
+    unlink $file; 
+    $context->print( $text );
+    $context->input( $text );
+    return 1;
 }
 
 sub register {
@@ -89,6 +115,13 @@ sub help {
     $context->print( "Example:\n" );
     $context->print( "    " );
     $context->print( "psql>" . $self->{_CMD_CHAR} . "list\n\n" );
+    return 1;
+}
+
+sub alias {
+    my ( $self, $context ) = @_;
+    my ($cmd, $number, $alias) = split / /, $context->input();
+
     return 1;
 }
 

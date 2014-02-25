@@ -63,6 +63,7 @@ sub new {
 	my $handler = new PSQL::Extension::Handler();
 	$handler->register( "PSQL::Extension::Basic" );
 	$handler->register( "PSQL::Extension::SQL" );
+	$handler->register( "PSQL::Extension::Jobs" );
     $context->handler( $handler );
     
     $self->context( $context );

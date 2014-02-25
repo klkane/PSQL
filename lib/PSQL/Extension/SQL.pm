@@ -28,7 +28,8 @@ sub init {
     $self->SUPER::init();
     
     $self->{display_type} = 'table';
-    $self->{actions}{';$'} = \&PSQL::Extension::SQL::execute_sql;
+    $self->{actions}{'^(select|insert|delete|update|show|explain)'} = \&PSQL::Extension::SQL::execute_sql;
+    $self->{actions}{'^' . $self->{_CMD_CHAR} . 'sql'} = \&PSQL::Extension::SQL::execute_sql;
     $self->{actions}{'^' . $self->{_CMD_CHAR} . 'run'} = \&PSQL::Extension::SQL::execute_from_file;
     $self->{actions}{'^' . $self->{_CMD_CHAR} . 'record'} = \&PSQL::Extension::SQL::record_sql;
     $self->{actions}{'^' . $self->{_CMD_CHAR} . 'display'} = \&PSQL::Extension::SQL::display;
@@ -52,12 +53,24 @@ sub execute_sql {
     
     if( $context->default() != -1 ) { 
         my $dbh = $context->default()->{dbh};
-        my $sth = $dbh->prepare( $context->input() );
-        my $ret = $sth->execute();
+        my $sql = $context->input();
+        $sql =~ s/;$//g;
+        $sql =~ s/^.sql//g;
 
-        if( !$ret ) { 
+        my $pipe;
+        if( $sql =~ /; *\| *(.*)$/ ) {
+            $pipe = $1;
+            $sql =~ s/; *\| *.*$//g;
+            $context->pipe( $pipe );
+        }
+
+        my $sth = $dbh->prepare( $sql );
+        my $ret;
+
+        if( !$sth ) { 
             $context->print( $dbh->errstr . "\n" );
         } else {
+            $ret = $sth->execute();
             if( $self->{_record_file} ) {
                 open( FILE, ">>" . $self->{_record_file} );
                 print FILE $context->input() . "\n";
@@ -87,7 +100,7 @@ sub execute_sql {
 =cut
 
 sub _table_display {
-    my ($self, $context, $sth) = @_;
+    my ($self, $context, $sth ) = @_;
     my $at = new Text::ASCIITable( { headingText => $context->input() } );
     $at->setCols( @{ $sth->{NAME_lc} } );
     $at->addRow( $sth->fetchall_arrayref );    

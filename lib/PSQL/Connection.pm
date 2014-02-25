@@ -55,7 +55,7 @@ sub passwd {
 
 sub reconnect {
     my $self = shift;
-    my $dbh = DBI->connect( "dbi:" . $self->dsn, $self->user, $self->passwd );
+    my $dbh = DBI->connect( $self->dsn, $self->user, $self->passwd );
     $self->{dbh} = $dbh;
     return 1;
 }
@@ -65,7 +65,7 @@ sub connect {
    
     my $error = 0;
     if( $dsn ) { 
-        my $dbh = DBI->connect( "dbi:$dsn", $user, $passwd ) 
+        my $dbh = DBI->connect( $dsn, $user, $passwd ) 
             or $error = 1;
         $self->dsn( $dsn );
         $self->user( $user );

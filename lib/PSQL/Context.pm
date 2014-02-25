@@ -45,10 +45,29 @@ sub print {
         print FH $output;
         close FH;
     } else {
-        print $output;
+        if( $self->pipe() ) {
+            open( my $fh, '|-', $self->pipe );
+            print $fh $output;
+            close( $fh );
+            $self->{pipe} = undef;
+        } else {
+            print $output;
+        }
     }
 
     return $output;
+}
+
+sub pipe {
+    my ($self, $pipe) = @_;
+    
+    if( not defined $pipe ) {
+        $pipe = $self->{pipe};
+    } else {
+        $self->{pipe} = $pipe;
+    }
+
+    return $pipe;
 }
 
 sub prompt {
@@ -87,12 +106,25 @@ sub default {
     return $input;
 }
 
+sub last_input {
+    my ($self, $last_input) = @_;
+    
+    if( not defined $last_input ) {
+        $last_input = $self->{last_input};
+    } else {
+        $self->{last_input} = $last_input;
+    }
+
+    return $last_input;
+}
+
 sub input {
     my ($self, $input) = @_;
     
     if( not defined $input ) {
         $input = $self->{input};
     } else {
+        $self->last_input( $self->{input} );
         $self->{input} = $input;
     }
 

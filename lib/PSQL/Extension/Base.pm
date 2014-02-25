@@ -35,7 +35,7 @@ sub poll {
 
     my $success = 0;
     foreach my $pattern (keys %{ $self->{actions} }) {
-        if( $input =~ /$pattern/ ) {
+        if( $input =~ /$pattern/i ) {
             my $func = $self->{actions}{$pattern};
             $success = $func->( $self, ($context) );
         }

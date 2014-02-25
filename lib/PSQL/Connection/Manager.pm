@@ -52,6 +52,16 @@ sub get {
     return ( $dbh, $index );  
 }
 
+sub alias {
+    my ( $self, $old, $new ) = @_;
+
+    foreach my $name ( @{ $self->{names} } ) {
+        $name = $new if $name eq $old;
+    }
+
+    return 1;
+}
+
 sub add {
     my ($self, $dsn, $name, $passwd) = @_;
 

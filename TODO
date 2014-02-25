@@ -14,7 +14,6 @@ Functionality
     Explain plan formatting
     output formatting
     :set mode
-    edit query in editor save buffer gets executed
     connect on use for configurations loaded from a file
     /connect with no args prompts you for all information in a friendly manner
     /which command is broken

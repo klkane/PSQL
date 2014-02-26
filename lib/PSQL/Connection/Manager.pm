@@ -18,10 +18,7 @@ use PSQL::Connection;
 sub new {
     my $class = shift;
     my $self = {};
-
-    @{ $self->{connections} } = ();
-    @{ $self->{names} } = ();
-
+    $self->{connections} = {};
     return bless $self, $class;
 }
 
@@ -36,20 +33,11 @@ sub get {
     my $dbh = -1;
     my $index = -1;
 
-    if( not defined $ident ) {
+    if( not exists $self->{connections}->{$ident} ) {
         return ( $dbh, $index );  
     }  
 
-    for(my $i = 0; $i < scalar( $self->{names} ); $i++ ) {
-        if( $self->{names}[$i] eq $ident or
-            $ident == $i ) {
-            $dbh = $self->{connections}[$i];
-            $index = $i;
-            last;
-        }
-    }
-
-    return ( $dbh, $index );  
+    return ( $self->{connections}->{$ident}, $ident );
 }
 
 sub alias {
@@ -63,17 +51,13 @@ sub alias {
 }
 
 sub add {
-    my ($self, $dsn, $name, $passwd) = @_;
-
-    if( not defined $name ) {
-        $name = scalar( @{ $self->{connections} } );
-    }
+    my ($self, $dsn, $user, $passwd, $name ) = @_;
 
     my $conn = new PSQL::Connection();
-    my $success = $conn->connect( $dsn, $name, $passwd );
+    $conn->name( $name );
+    my $success = $conn->connect( $dsn, $user, $passwd );
 
-    push @{ $self->{connections} }, $conn if $success;     
-    push @{ $self->{names} }, $name if $success;
+    $self->{connections}->{$name} = $conn if $success;
 
     return $success;
 }
@@ -83,10 +67,9 @@ sub remove {
     my $success = 0;
 
     my ($dbh, $index) = $self->get( $ident );
-    if( $index >= 0 ) {
-        $self->{connections}[$index]->disconnect();
-        delete $self->{connections}[$index];
-        delete $self->{names}[$index];
+    if( $index eq $ident ) {
+        $self->{connections}->{$index}->disconnect();
+        delete $self->{connections}->{$ident};
         $success = 1;
     }
     

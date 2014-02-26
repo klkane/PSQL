@@ -1,10 +1,14 @@
+BUGS:
+    /which doesn't seem to work at all now
+
 Tab Completion:
     Commands
     SQL Reserved words
     Things in schema
 
 Password Prompt
-YAML Config file
+JSON Config file, password protected and encrypted
+Make /list display a nice ascii table with user
 
 Functionality
     Fill out the commands

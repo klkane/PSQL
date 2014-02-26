@@ -53,6 +53,16 @@ sub passwd {
     return $self->{passwd};
 }
 
+sub name {
+    my ($self, $name) = @_;
+    
+    if( $name ) {
+        $self->{name} = $name;
+    }
+
+    return $self->{name};
+}
+
 sub reconnect {
     my $self = shift;
     my $dbh = DBI->connect( $self->dsn, $self->user, $self->passwd );

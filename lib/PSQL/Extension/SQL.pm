@@ -71,22 +71,26 @@ sub execute_sql {
             $context->print( $dbh->errstr . "\n" );
         } else {
             $ret = $sth->execute();
-            if( $self->{_record_file} ) {
-                open( FILE, ">>" . $self->{_record_file} );
-                print FILE $context->input() . "\n";
-                close( FILE );
-            }
-
-            if( $context->input() =~ /^(select|show|explain)/i ) { 
-                if( $self->{display_type} eq 'table' ) {
-                    $self->_table_display( $context, $sth );
-                } elsif( $self->{display_type} eq 'csv' ) {
-                    $self->_csv_display( $context, $sth );
-                } else {
-                    $self->_table_display( $context, $sth );
-                }
+            if( !$ret ) {
+                $context->print( $dbh->errstr . "\n" );
             } else {
-                $context->print( $sth->rows() . " rows affected\n" );
+	            if( $self->{_record_file} ) {
+	                open( FILE, ">>" . $self->{_record_file} );
+	                print FILE $context->input() . "\n";
+	                close( FILE );
+	            }
+	
+	            if( $context->input() =~ /^(select|show|explain)/i ) { 
+	                if( $self->{display_type} eq 'table' ) {
+	                    $self->_table_display( $context, $sth );
+	                } elsif( $self->{display_type} eq 'csv' ) {
+	                    $self->_csv_display( $context, $sth );
+	                } else {
+	                    $self->_table_display( $context, $sth );
+	                }
+	            } else {
+	                $context->print( $sth->rows() . " rows affected\n" );
+	            }
             }   
         }   
     } else {

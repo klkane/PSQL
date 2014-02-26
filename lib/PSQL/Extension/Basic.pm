@@ -94,7 +94,7 @@ sub use {
 
     if( $context->default( $context->connection_manager()
         ->get( $ident ) ) ) {
-        $context->prompt( $context->default->dsn() . '>' );
+        $context->prompt( $context->default->name() . '>' );
         $context->print( "Default database set to $ident\n" );    
     } else {
         $context->print( "Can't find database $ident, doing nothing\n" );
@@ -127,8 +127,8 @@ sub alias {
 
 sub connect {
     my ($self, $context) = @_;
-    my ($cmd, $dsn, $name, $passwd) = split / /, $context->input();
-    if( $context->connection_manager()->add( $dsn, $name, $passwd ) ) {
+    my ($cmd, $name, $dsn, $user, $passwd) = split / /, $context->input();
+    if( $context->connection_manager()->add( $dsn, $user, $passwd, $name ) ) {
         $context->print( "Conntected to $dsn\n" );
     } 
     
@@ -138,8 +138,8 @@ sub connect {
 sub list {
     my ($self, $context) = @_;
     my $i = 0;
-    foreach my $conn ( @{ $context->connection_manager()->connections() } ) {
-        $context->print( "$i: " . $conn->dsn() . "\n" );
+    foreach my $conn ( keys %{ $context->connection_manager()->connections() } ) {
+        $context->print( "$conn: " . $context->connection_manager->connections->{$conn}->dsn() . "\n" );
     }
     return 1;
 }

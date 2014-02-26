@@ -52,6 +52,7 @@ sub new_job {
     } else {
         # child
         $context->connection_manager->connect( $context->default() );
+        $context->{config}->{timeout} = 0;
         my $input = $context->input();
         $input =~ s/ *& *$//g;
         $context->input( $input );

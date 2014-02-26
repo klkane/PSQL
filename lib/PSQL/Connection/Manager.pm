@@ -29,20 +29,39 @@ sub is_connected {
     return $ret;
 }
 
+sub reconnect {
+    my ( $self, $ident ) = @_;
+    
+    my $dbh = DBI->connect( $self->connections->{$ident}->{dsn}, 
+        $self->connections->{$ident}->{user}, 
+        $self->connections->{$ident}->{passwd} );
+
+    $self->connections->{$ident}->{dbh} = $dbh;
+
+    return 1;
+}
+
+sub disconnect {
+    my ( $self, $ident ) = @_;
+    $self->connections->{$ident}->{dbh}->disconnect();
+    delete $self->connections->{$ident}->{dbh};
+    return 1;
+}
+
 sub connect {
     my ( $self, $ident ) = @_;
 
     my $error = 0;
 
-    if( not exists $self->connections->{$ident} ) {
-        return $error;
+    if( $ident && exists $self->connections->{$ident} ) {
+        my $dbh = DBI->connect( $self->connections->{$ident}->{dsn}, 
+            $self->connections->{$ident}->{user}, 
+            $self->connections->{$ident}->{passwd} ) or $error = 1;
+
+         $self->connections->{$ident}->{dbh} = $dbh if not $error;
+    } else {
+        $error = 1;
     }
-
-    my $dbh = DBI->connect( $self->connections->{$ident}->{dsn}, 
-        $self->connections->{$ident}->{user}, 
-        $self->connections->{$ident}->{passwd} ) or $error = 1;
-
-    $self->connections->{$ident}->{dbh} = $dbh if not $error;
 
     return not $error;
 }

@@ -42,7 +42,7 @@ sub edit {
     my $file = "/tmp/psql_12321313.tmp";    
 
     if( $opt && $opt eq "last" ) {
-        open( my $fh, "> $file" );
+        open( my $fh, ">", $file );
         print $fh $context->last_input();
         close( $fh );
     } 
@@ -71,20 +71,19 @@ sub load {
     my ($self, $context) = @_;
     my ($cmd, $file) = split / /, $context->input();
  
-    if( -e $file ) { 
-        open FILE, $file or return $context->print( $! ); 
-        my @lines = <FILE>;
-        close FILE;
-    
-        chomp @lines;
-        foreach my $cmd (@lines) {
-            $context->input( $cmd );
-            $context->handler()->seek( $context );
-        } 
-    } else {
-        $context->print( "File does not exist\n" );
-    }   
+    my $error = 0;
+    open( my $fh, "-|", "cat $file" ) or $error = 1;
 
+    if( not $error ) { 
+	    while( my $in = <$fh> ) {
+	        chomp $in;    
+	        $context->input( $in );
+	        $context->handler()->seek( $context );
+	    }
+    } else { 
+        $context->print( "File: $file does not exist\n" );
+    }   
+    $context->input( "" );
     return 1;
 }
 
@@ -128,7 +127,7 @@ sub connect {
     my ( $self, $context ) = @_;
     my ( $cmd, $name ) = split / /, $context->input();
     if( $context->connection_manager->connect( $name ) ) {
-        $context->print( "Conntected to $name\n" );
+        $context->print( "Connected to $name\n" );
         my $curr = $context->input();
         $context->input( "/use $name" );
         $context->handler->seek( $context );
@@ -142,7 +141,7 @@ sub add {
     my ($self, $context) = @_;
     my ($cmd, $name, $dsn, $user, $passwd) = split / /, $context->input();
     if( $context->connection_manager()->add( $dsn, $user, $passwd, $name ) ) {
-        $context->print( "Conntected to $dsn\n" );
+        $context->print( "Added connection to $dsn\n" );
     } 
     
     return 1;

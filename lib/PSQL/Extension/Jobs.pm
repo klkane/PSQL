@@ -14,8 +14,7 @@ package PSQL::Extension::Jobs;
 use strict;
 use warnings;
 use PSQL::Extension::Base;
-use Text::Table;
-use Text::ASCIITable;
+use POSIX ':sys_wait_h';
 
 our @ISA = qw( PSQL::Extension::Base );
 
@@ -36,6 +35,8 @@ sub init {
 sub new_job {
     my ($self, $context) = @_;
 
+    $context->connection_manager->disconnect( $context->default() );
+
     my $pid = fork();
 
     if( $pid ) {
@@ -46,14 +47,15 @@ sub new_job {
         }
         $self->{_job_list}{$pid} = localtime;
         $context->print( "process $pid spawned\n" );
+        $context->connection_manager->connect( $context->default() );
+        return 1;
     } else {
         # child
-        $context->default->reconnect();
+        $context->connection_manager->connect( $context->default() );
         my $input = $context->input();
-        $input =~ s/; *& */;/g;
+        $input =~ s/ *& *$//g;
         $context->input( $input );
         $context->buffer_output( "/tmp/psql_buffer.$$" );
-        
         $context->handler->seek( $context );
         exit;
     }
@@ -80,12 +82,21 @@ sub kill {
 sub wait {
     my ($self, $context) = @_;
     my ($cmd, $pid) = split / /, $context->input();
-    waitpid( $pid, 0 );
-    open my $fh, "<", "/tmp/psql_buffer.$pid";
+    my $status = waitpid( $pid, WNOHANG );
 
-    while( <$fh> ) {
-        $context->print( $_ );
+    if( $status ) {
+        open my $fh, "<", "/tmp/psql_buffer.$pid";
+        
+        while( my $in = <$fh> ) {
+            $context->print( $in );
+        }
+        close( $fh );
+        unlink( "/tmp/psql_buffer.$pid" );
+        delete $self->{_job_list}{$pid};
+    } else {
+        $context->print( "pid $pid is still working\n" );
     }
+
     return 1;
 }
 

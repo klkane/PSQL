@@ -63,7 +63,6 @@ sub new {
 	my $handler = new PSQL::Extension::Handler();
 	$handler->register( "PSQL::Extension::Basic" );
 	$handler->register( "PSQL::Extension::SQL" );
-	$handler->register( "PSQL::Extension::Jobs" );
     $context->handler( $handler );
     
     $self->context( $context );
@@ -85,16 +84,19 @@ sub context {
 sub run {
     my $self = shift;
     my $context = $self->context();
-    
-	while ( defined( $_ = $context->readline->readline( 
-        $context->prompt() ) ) ) {
-        if( $_ eq "" ) {
+
+    $context->input( "/load ~/.psql.conf" );
+    $context->handler()->seek( $context );   
+ 
+	while ( my $input = $context->readline->readline( 
+        $context->prompt() ) ) {
+        if( $input eq "" ) {
             next;
         }
 
-        $context->input( $_ );
-	    if( not $context->handler()->seek( $context ) && length( $_ ) > 0 ) {
-            $context->print( "[$_] I don't know how to respond to your request!\n" );
+        $context->input( $input );
+	    if( not $context->handler()->seek( $context ) && length( $input ) > 0 ) {
+            $context->print( "[$input] I don't know how to respond to your request!\n" );
         }
 	}
 }

@@ -22,7 +22,15 @@ sub new {
     $self->connection_manager( $connection_manager );
     $self->input( $input );
     $self->default( $default );
+    $self->{config} = {
+        timeout => 0
+    };
     return $self;
+}
+
+sub config {
+    my $self;
+    return $self->{config};
 }
 
 sub buffer_output {
@@ -103,7 +111,7 @@ sub default {
         $self->{default} = $input;
     }
 
-    return $self->connection_manager->connections->{$input};
+    return $input;
 }
 
 sub last_input {

@@ -1,5 +1,6 @@
 BUGS:
     /which doesn't seem to work at all now
+    hitting enter by itself results in the application quitting and I doesnt know why.
 
 Tab Completion:
     Commands
@@ -7,8 +8,6 @@ Tab Completion:
     Things in schema
 
 Password Prompt
-JSON Config file, password protected and encrypted
-Make /list display a nice ascii table with user
 
 Functionality
     Fill out the commands
@@ -18,11 +17,12 @@ Functionality
     Explain plan formatting
     output formatting
     :set mode
-    connect on use for configurations loaded from a file
-    /connect with no args prompts you for all information in a friendly manner
-    /which command is broken
 
 DBA tools
     DB process lists
     top like display
+
+
+DOCUMENTATION
+    its a mess right now.
 

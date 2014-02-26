@@ -25,8 +25,8 @@ sub init {
     $self->{actions}{'^' . $self->{_CMD_CHAR} . 'list'} = \&PSQL::Extension::Basic::list;
     $self->{actions}{'^' . $self->{_CMD_CHAR} . '?(exit|quit)'} = \&PSQL::Extension::Basic::exit;
     $self->{actions}{'^' . $self->{_CMD_CHAR} . '?clear'} = \&PSQL::Extension::Basic::clear;
-    $self->{actions}{'^' . $self->{_CMD_CHAR} . 'which'} = \&PSQL::Extension::Basic::which;
     $self->{actions}{'^' . $self->{_CMD_CHAR} . 'connect'} = \&PSQL::Extension::Basic::connect;
+    $self->{actions}{'^' . $self->{_CMD_CHAR} . 'add'} = \&PSQL::Extension::Basic::add;
     $self->{actions}{'^' . $self->{_CMD_CHAR} . 'use'} = \&PSQL::Extension::Basic::use;
     $self->{actions}{'^' . $self->{_CMD_CHAR} . 'disconnect'} = \&PSQL::Extension::Basic::disconnect;
     $self->{actions}{'^' . $self->{_CMD_CHAR} . '?help'} = \&PSQL::Extension::Basic::help;
@@ -92,9 +92,8 @@ sub use {
     my ($self, $context) = @_;
     my ($cmd,$ident) = split / /, $context->input();
 
-    if( $context->default( $context->connection_manager()
-        ->get( $ident ) ) ) {
-        $context->prompt( $context->default->name() . '>' );
+    if( $context->default( $ident ) ) {
+        $context->prompt( $ident . '>' );
         $context->print( "Default database set to $ident\n" );    
     } else {
         $context->print( "Can't find database $ident, doing nothing\n" );
@@ -111,7 +110,7 @@ sub help {
     my ($self, $context) = @_;
     $context->print( "Commands(commands should be preceded by a '" . $self->{_CMD_CHAR}  . "'):\n" );
     $context->print( "    " );
-    $context->print( " list|exit|quit|which|connect|use\n\n" );
+    $context->print( " list|exit|quit|add|connect|use\n\n" );
     $context->print( "Example:\n" );
     $context->print( "    " );
     $context->print( "psql>" . $self->{_CMD_CHAR} . "list\n\n" );
@@ -126,6 +125,20 @@ sub alias {
 }
 
 sub connect {
+    my ( $self, $context ) = @_;
+    my ( $cmd, $name ) = split / /, $context->input();
+    if( $context->connection_manager->connect( $name ) ) {
+        $context->print( "Conntected to $name\n" );
+        my $curr = $context->input();
+        $context->input( "/use $name" );
+        $context->handler->seek( $context );
+        $context->input( $curr ); 
+    }
+
+    return 1;
+}
+
+sub add {
     my ($self, $context) = @_;
     my ($cmd, $name, $dsn, $user, $passwd) = split / /, $context->input();
     if( $context->connection_manager()->add( $dsn, $user, $passwd, $name ) ) {
@@ -137,16 +150,18 @@ sub connect {
 
 sub list {
     my ($self, $context) = @_;
-    my $i = 0;
-    foreach my $conn ( keys %{ $context->connection_manager()->connections() } ) {
-        $context->print( "$conn: " . $context->connection_manager->connections->{$conn}->dsn() . "\n" );
-    }
-    return 1;
-}
+    
+    my $at = new Text::ASCIITable( { headingText => "Connections List" } );
+    $at->setCols( ( 'Name', 'DSN', 'User', 'Connected' ) );
 
-sub which {
-    my ($self, $context) = @_;
-    $context->print( $context->default() . "\n" );
+    foreach my $conn ( keys %{ $context->connection_manager->connections } ) {
+        $at->addRow( $conn, $context->connection_manager->connections->{$conn}->{dsn},
+            $context->connection_manager->connections->{$conn}->{user},
+            ( $context->connection_manager->connections->{$conn}->{dbh} ) ? 'Y' : 'N'
+            );
+    }
+    
+    $context->print( $at );
     return 1;
 }
 

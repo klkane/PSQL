@@ -103,7 +103,7 @@ sub default {
         $self->{default} = $input;
     }
 
-    return $input;
+    return $self->connection_manager->connections->{$input};
 }
 
 sub last_input {

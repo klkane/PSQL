@@ -132,7 +132,7 @@ sub execute_sql {
 
 sub _table_display {
     my ($self, $context, $sth ) = @_;
-    my $at = new Text::ASCIITable( { headingText => $context->input() } );
+    my $at = new Text::ASCIITable();
     $at->setCols( @{ $sth->{NAME_lc} } );
     $at->addRow( $sth->fetchall_arrayref );    
     $context->print( $at );

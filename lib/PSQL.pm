@@ -88,8 +88,9 @@ sub run {
     $context->input( "/load ~/.psql.conf" );
     $context->handler()->seek( $context );   
  
-	while ( my $input = $context->readline->readline( 
-        $context->prompt() ) ) {
+	while ( 1 ) {
+        my $input = $context->readline->readline( $context->prompt() );
+        
         if( $input eq "" ) {
             next;
         }

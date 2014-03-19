@@ -9,6 +9,10 @@ Tab Completion:
 
 Password Prompt
 
+SUPPORT THESE:
+LongReadLen
+LongReadTruncOk
+
 Functionality
     Fill out the commands
     Run from file system

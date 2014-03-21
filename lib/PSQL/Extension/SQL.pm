@@ -103,6 +103,8 @@ sub execute_sql {
 			                    $self->_table_display( $context, $sth );
 			                } elsif( $self->{display_type} eq 'csv' ) {
 			                    $self->_csv_display( $context, $sth );
+			                } elsif( $self->{display_type} eq 'html' ) {
+			                    $self->_html_display( $context, $sth );
 			                } else {
 			                    $self->_table_display( $context, $sth );
 			                }
@@ -150,6 +152,23 @@ sub _csv_display {
     }
 }
 
+sub _html_display {
+    my ($self, $context, $sth) = @_;
+    open( my $fh, ">", "/tmp/resultset.html" );
+    print $fh "<html><body><table><tr><th>" . join( '</th><th>', @{ $sth->{NAME_lc} } ) . '</th></tr>';
+    while( my @row = $sth->fetchrow_array ) {
+        print $fh "<tr><td>";
+        print $fh join( '</td><td>', @row );
+        print $fh "</td></tr>";
+    }
+    print $fh "</table></body></html>";
+    close( $fh );
+   
+    my $browser = $ENV{BROWSER} ||= 'lynx';
+    system "$browser /tmp/resultset.html";
+    unlink( "/tmp/resultset.html" ); 
+}
+
 =head2 execute_from_file
 
 =cut
@@ -187,7 +206,7 @@ sub display {
     my ($self, $context) = @_;
     my ($cmd, $type) = split / /, $context->input();
 
-    if( $type =~ /^(table|csv)$/ ) {
+    if( $type =~ /^(table|csv|html)$/ ) {
         $self->{display_type} = $type;
     } else {
         $context->print( "$type not recognized\n" ); 

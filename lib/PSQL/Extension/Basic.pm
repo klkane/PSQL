@@ -140,9 +140,14 @@ sub connect {
 sub add {
     my ($self, $context) = @_;
     my ($cmd, $name, $dsn, $user, $passwd) = split / /, $context->input();
-    if( $context->connection_manager()->add( $dsn, $user, $passwd, $name ) ) {
-        $context->print( "Added connection to $dsn\n" );
-    } 
+    
+    if( $cmd && $name && $dsn && $user && $passwd ) {
+        if( $context->connection_manager()->add( $dsn, $user, $passwd, $name ) ) {
+            $context->print( "Added connection to $dsn\n" );
+        } 
+    } else {
+        $context->print( "Usage:\n    /add <name> <dsn> <user> <password>\n" );
+    }
     
     return 1;
 }
